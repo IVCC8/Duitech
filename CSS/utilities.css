@@ -1,0 +1,10 @@
+.text-success { color: #166534; }
+.text-danger { color: #991b1b; }
+.text-muted { color: #64748b; }
+
+.empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-light);
+    font-style: italic;
+}

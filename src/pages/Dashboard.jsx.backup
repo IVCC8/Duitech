@@ -1,0 +1,1332 @@
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import SalesChart from '../components/charts/SalesChart';
+import CategoryChart from '../components/charts/CategoryChart';
+import { productsData } from '../context/mockData';
+import StatCard from '../components/ui/StatCard';
+import { useNotifications } from '../context/NotificationContext';
+import { useEffect } from 'react';
+
+const Dashboard = () => {
+    const { user } = useAuth();
+    const { addNotification } = useNotifications();
+    const navigate = useNavigate();
+    const role = user?.role;
+
+    useEffect(() => {
+        // Notificación de bienvenida genuina al entrar al dashboard
+        addNotification({
+            title: 'Sesión Iniciada',
+            text: `Bienvenido al panel de ${role}. Tu conexión es segura.`,
+            type: 'system'
+        });
+    }, [addNotification, role]); // Solo al montar o si cambia el rol
+
+    if (role === 'admin') return <AdminDashboard />;
+    if (role === 'seller') return <SellerDashboard navigate={navigate} />;
+    if (role === 'client') return <ClientDashboard navigate={navigate} />;
+
+    return <div>Cargando...</div>;
+};
+
+const AdminDashboard = () => {
+    const totalStock = productsData.reduce((acc, p) => acc + p.stock, 0);
+    const lowStockCount = productsData.filter(p => p.stock < 5).length;
+
+    return (
+        <div className="container-fluid p-0">
+            {/* MARCADOR DE PRUEBA AL INICIO */}
+            <div className="alert alert-warning fw-bold text-center mb-4 p-4" style={{ fontSize: '20px', background: 'yellow', border: '5px solid orange' }}>
+                ⚡ ARCHIVO DASHBOARD.JSX CARGADO - VERSIÓN ACTUALIZADA ⚡
+            </div>
+
+            <div className="info-section mb-5" data-aos="fade-down">
+                <h2 className="display-6 fw-bold text-gradient">Resumen de Operaciones</h2>
+                <p className="text-muted fs-5">Bienvenido de nuevo, Administrador. Así marcha el negocio hoy.</p>
+            </div>
+
+            <div className="row g-4 mb-5">
+                <div className="col-12 col-sm-6 col-xl-3" data-aos="zoom-in" data-aos-delay="100">
+                    <StatCard 
+                        title="Ingresos del Día" 
+                        value="$ 45,200" 
+                        sub={<><i className="fas fa-arrow-up"></i> +12% respecto a ayer</>} 
+                        icon="fa-dollar-sign" 
+                        trend="up" 
+                    />
+                </div>
+                <div className="col-12 col-sm-6 col-xl-3" data-aos="zoom-in" data-aos-delay="200">
+                    <StatCard 
+                        title="Stock Crítico" 
+                        value={lowStockCount} 
+                        sub={lowStockCount > 0 ? `${lowStockCount} productos requieren reabastecimiento` : "Todo en orden"} 
+                        icon="fa-exclamation-triangle" 
+                        trend={lowStockCount > 0 ? "down" : "neutral"} 
+                    />
+                </div>
+                <div className="col-12 col-sm-6 col-xl-3" data-aos="zoom-in" data-aos-delay="300">
+                    <StatCard 
+                        title="Inventario Total" 
+                        value={totalStock.toLocaleString()} 
+                        sub={`Unidades físicas en almacén`} 
+                        icon="fa-boxes" 
+                        trend="neutral" 
+                    />
+                </div>
+                <div className="col-12 col-sm-6 col-xl-3" data-aos="zoom-in" data-aos-delay="400">
+                    <StatCard 
+                        title="Vendedores Online" 
+                        value="2" 
+                        sub="De un total de 5 registrados" 
+                        icon="fa-user-tie" 
+                        trend="up" 
+                    />
+                </div>
+            </div>
+
+            <div className="row g-4">
+                <div className="col-12 col-lg-8" data-aos="fade-right">
+                    <div className="card border-0 shadow-sm mb-4">
+                        <div className="card-body p-4">
+                            <h4 className="fw-bold mb-4 flex items-center gap-2">
+                                <i className="fas fa-chart-bar text-primary"></i> 
+                                Rendimiento Semanal
+                            </h4>
+                            <div style={{ height: '350px' }}>
+                                <SalesChart />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card border-0 shadow-sm">
+                        <div className="card-body p-4">
+                             <div className="d-flex justify-content-between align-items-center mb-4">
+                                <h4 className="fw-bold m-0"><i className="fas fa-star text-warning"></i> Productos Destacados</h4>
+                                <button className="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    <i className="fas fa-download me-2"></i> Reporte
+                                </button>
+                             </div>
+                             <div className="table-responsive">
+                                <table className="table table-hover align-middle">
+                                    <thead className="table-light text-muted">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th className="text-center">Unidades</th>
+                                            <th className="text-end">Crecimiento</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="border-top-0">
+                                        <tr><td><strong>iPhone 13 Pro</strong></td><td className="text-center">12</td><td className="text-end"><span className="badge bg-success-subtle text-success border border-success-subtle"><i className="fas fa-caret-up"></i> +5.2%</span></td></tr>
+                                        <tr><td><strong>Laptop Dell XPS</strong></td><td className="text-center">8</td><td className="text-end"><span className="badge bg-success-subtle text-success border border-success-subtle"><i className="fas fa-caret-up"></i> +2.1%</span></td></tr>
+                                        <tr><td><strong>Monitor LG Ultra</strong></td><td className="text-center">15</td><td className="text-end"><span className="badge bg-light text-muted border"><i className="fas fa-minus"></i> 0.0%</span></td></tr>
+                                        <tr><td><strong>Cable HDMI 4K</strong></td><td className="text-center">45</td><td className="text-end"><span className="badge bg-success-subtle text-success border border-success-subtle"><i className="fas fa-caret-up"></i> +8.4%</span></td></tr>
+                                        <tr><td><strong>Mouse Logitech</strong></td><td className="text-center">20</td><td className="text-end"><span className="badge bg-danger-subtle text-danger border border-danger-subtle"><i className="fas fa-caret-down"></i> -3.1%</span></td></tr>
+                                    </tbody>
+                                </table>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-12 col-lg-4" data-aos="fade-left">
+                    <div className="card border-0 shadow-sm mb-4">
+                        <div className="card-body p-4">
+                            <h4 className="fw-bold mb-4"><i className="fas fa-chart-pie text-accent"></i> Stock por Categoría</h4>
+                            <div style={{ height: '300px' }}>
+                                <CategoryChart />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card border-0 shadow-sm overflow-hidden text-white bg-primary bg-gradient relative mb-4" style={{ minHeight: '300px' }}>
+                        <div className="card-body p-4 relative z-10">
+                            <h4 className="fw-bold mb-4"><i className="fas fa-history"></i> Auditoría Reciente</h4>
+                            <div className="activity-log">
+                                <ActivityItem time="10:45" text="Factura #1024 generada" icon="fa-file-invoice" dark />
+                                <ActivityItem time="10:15" text="Ajuste stock: iPhone 13" icon="fa-edit" dark />
+                                <ActivityItem time="09:30" text="Sesión: Administrador" icon="fa-user-check" dark />
+                                <ActivityItem time="09:00" text="Sincronización exitosa" icon="fa-sync" dark />
+                            </div>
+                        </div>
+                        <i className="fas fa-shield-alt absolute -bottom-10 -right-10 text-white opacity-10" style={{ fontSize: '150px' }}></i>
+                    </div>
+
+                    <div className="card border-0 shadow-sm p-4" data-aos="zoom-in">
+                        <h5 className="fw-bold mb-4"><i className="fas fa-server text-success me-2"></i> Estado del Sistema</h5>
+                        <div className="d-grid gap-3">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <span className="small text-muted">Base de Datos</span>
+                                <span className="badge bg-success-subtle text-success border border-success-subtle">Online</span>
+                            </div>
+                            <div className="d-flex justify-content-between align-items-center">
+                                <span className="small text-muted">Servidor API</span>
+                                <span className="badge bg-success-subtle text-success border border-success-subtle">Estable</span>
+                            </div>
+                            <div className="d-flex justify-content-between align-items-center">
+                                <span className="small text-muted">Latencia</span>
+                                <span className="text-success fw-bold">24ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Nueva Sección ADMIN: Panel de Tareas y Métricas Proyectadas */}
+            <div className="row g-4 mt-2">
+                <div className="col-12 col-md-4" data-aos="fade-up">
+                    <div className="card border-0 shadow-sm p-4 bg-white h-100">
+                        <h5 className="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i className="fas fa-tasks text-primary"></i> Tareas de Gestión
+                        </h5>
+                        <div className="list-group list-group-flush">
+                            <div className="list-group-item px-0 border-0 d-flex gap-3 align-items-center">
+                                <input className="form-check-input" type="checkbox" checked readOnly />
+                                <span className="small text-muted text-decoration-line-through">Revisar facturas pendientes</span>
+                            </div>
+                            <div className="list-group-item px-0 border-0 d-flex gap-3 align-items-center">
+                                <input className="form-check-input" type="checkbox" />
+                                <span className="small fw-bold">Actualizar precios de catálogo</span>
+                            </div>
+                            <div className="list-group-item px-0 border-0 d-flex gap-3 align-items-center">
+                                <input className="form-check-input" type="checkbox" />
+                                <span className="small fw-bold">Revisar reporte de inventario</span>
+                            </div>
+                            <div className="list-group-item px-0 border-0 d-flex gap-3 align-items-center">
+                                <input className="form-check-input" type="checkbox" />
+                                <span className="small fw-bold">Cita con proveedor logístico</span>
+                                <span className="badge bg-danger ms-auto">Hoy</span>
+                            </div>
+                        </div>
+                        <button className="btn btn-outline-primary btn-sm rounded-pill mt-4 fw-bold">Añadir Tarea</button>
+                    </div>
+                </div>
+                <div className="col-12 col-md-8" data-aos="fade-up" data-aos-delay="100">
+                    <div className="card border-0 shadow-sm p-4 h-100">
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <h5 className="fw-bold m-0"><i className="fas fa-project-diagram text-secondary me-2"></i> Proyecciones de Cierre Mensual</h5>
+                            <span className="badge bg-primary px-3 py-2 rounded-pill fw-bold">Faltan 12 días</span>
+                        </div>
+                        <div className="row g-4">
+                            <div className="col-sm-6">
+                                <div className="p-3 bg-light rounded-4">
+                                    <span className="small text-muted d-block mb-1">Meta de Ventas</span>
+                                    <h4 className="fw-bold m-0 text-primary">$1,200,000</h4>
+                                    <div className="progress mt-2" style={{ height: '6px' }}>
+                                        <div className="progress-bar bg-primary" style={{ width: '65%' }}></div>
+                                    </div>
+                                    <span className="x-small text-muted">65% completado</span>
+                                </div>
+                            </div>
+                            <div className="col-sm-6">
+                                <div className="p-3 bg-light rounded-4">
+                                    <span className="small text-muted d-block mb-1">Ratio de Conversión</span>
+                                    <h4 className="fw-bold m-0 text-success">32.5%</h4>
+                                    <div className="progress mt-2" style={{ height: '6px' }}>
+                                        <div className="progress-bar bg-success" style={{ width: '32.5%' }}></div>
+                                    </div>
+                                    <span className="x-small text-muted">Meta: 40%</span>
+                                </div>
+                            </div>
+                            <div className="col-12">
+                                <div className="p-3 bg-dark text-white rounded-4 d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 className="fw-bold m-0">Recomendación del sistema</h6>
+                                        <p className="x-small text-white-50 m-0">Aumentar stock de periféricos para el fin de semana.</p>
+                                    </div>
+                                    <i className="fas fa-robot fs-2 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Nueva sección para Admin: Actividad de Usuarios */}
+            <div className="row g-4 mt-2 mb-5">
+                <div className="col-12" data-aos="fade-up">
+                    <div className="card border-0 shadow-sm p-4">
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <h4 className="fw-bold m-0"><i className="fas fa-users-cog text-primary me-2"></i> Actividad de Personal Reciente</h4>
+                            <button className="btn btn-sm btn-light border fw-bold text-muted px-3 rounded-pill">Ver Log Completo</button>
+                        </div>
+                        <div className="table-responsive">
+                            <table className="table table-hover align-middle mb-0">
+                                <thead className="table-light text-muted">
+                                    <tr className="small">
+                                        <th>Usuario</th>
+                                        <th>Rol</th>
+                                        <th>Acción Realizada</th>
+                                        <th>Módulo</th>
+                                        <th className="text-end">Hora</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <div className="bg-primary-subtle text-primary rounded-circle w-8 h-8 d-flex align-items-center justify-content-center fw-bold small">J</div>
+                                                <span className="fw-bold small">Juan Pérez</span>
+                                            </div>
+                                        </td>
+                                        <td><span className="badge bg-light text-dark border small">Vendedor</span></td>
+                                        <td className="small">Nueva Venta #1055</td>
+                                        <td className="small text-muted">Ventas POS</td>
+                                        <td className="text-end small text-muted">Hace 5 min</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <div className="bg-danger-subtle text-danger rounded-circle w-8 h-8 d-flex align-items-center justify-content-center fw-bold small">M</div>
+                                                <span className="fw-bold small">María Soto</span>
+                                            </div>
+                                        </td>
+                                        <td><span className="badge bg-light text-dark border small">Admin</span></td>
+                                        <td className="small">Modificación de Precios</td>
+                                        <td className="small text-muted">Inventario</td>
+                                        <td className="text-end small text-muted">Hace 18 min</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <div className="bg-secondary-subtle text-secondary rounded-circle w-8 h-8 d-flex align-items-center justify-content-center fw-bold small">R</div>
+                                                <span className="fw-bold small">Roberto G.</span>
+                                            </div>
+                                        </td>
+                                        <td><span className="badge bg-light text-dark border small">Vendedor</span></td>
+                                        <td className="small">Registro de Nuevo Cliente</td>
+                                        <td className="small text-muted">Clientes</td>
+                                        <td className="text-end small text-muted">Hace 1 hora</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ========== MARCADOR: AQUÍ EMPIEZAN LAS NUEVAS SECCIONES ========== */}
+            <div className="alert alert-success fw-bold text-center mb-4 p-5" style={{ fontSize: '24px', background: 'linear-gradient(135deg, #00ff00 0%, #00cc00 100%)', border: '5px solid #008800' }}>
+                🎉 SI VES ESTO, HAZ SCROLL HACIA ABAJO PARA VER LAS 3 NUEVAS SECCIONES 🎉
+            </div>
+
+            {/* NUEVA SECCIÓN ADMIN: Análisis de Rentabilidad */}
+            <div className="row g-4 mt-2 mb-5">
+                <div className="col-12 col-lg-6" data-aos="fade-right">
+                    <div className="card border-0 shadow-sm p-4 h-100">
+                        <h4 className="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i className="fas fa-chart-line text-success"></i> Análisis de Rentabilidad
+                        </h4>
+                        <div className="row g-3 mb-4">
+                            <div className="col-6">
+                                <div className="p-3 bg-success-subtle rounded-4 border border-success-subtle">
+                                    <div className="small text-muted mb-1">Margen Bruto</div>
+                                    <div className="h3 fw-bold text-success m-0">42.5%</div>
+                                    <div className="progress mt-2" style={{ height: '4px' }}>
+                                        <div className="progress-bar bg-success" style={{ width: '42.5%' }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-6">
+                                <div className="p-3 bg-primary-subtle rounded-4 border border-primary-subtle">
+                                    <div className="small text-muted mb-1">ROI Mensual</div>
+                                    <div className="h3 fw-bold text-primary m-0">28.3%</div>
+                                    <div className="progress mt-2" style={{ height: '4px' }}>
+                                        <div className="progress-bar bg-primary" style={{ width: '28.3%' }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="table-responsive">
+                            <table className="table table-sm align-middle mb-0">
+                                <thead className="text-muted small">
+                                    <tr>
+                                        <th>Categoría</th>
+                                        <th className="text-end">Ventas</th>
+                                        <th className="text-end">Costo</th>
+                                        <th className="text-end">Ganancia</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className="fw-bold small">Smartphones</td>
+                                        <td className="text-end small">$85,000</td>
+                                        <td className="text-end small text-muted">$52,000</td>
+                                        <td className="text-end small text-success fw-bold">+$33,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="fw-bold small">Laptops</td>
+                                        <td className="text-end small">$120,000</td>
+                                        <td className="text-end small text-muted">$78,000</td>
+                                        <td className="text-end small text-success fw-bold">+$42,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="fw-bold small">Accesorios</td>
+                                        <td className="text-end small">$24,500</td>
+                                        <td className="text-end small text-muted">$12,000</td>
+                                        <td className="text-end small text-success fw-bold">+$12,500</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-12 col-lg-6" data-aos="fade-left">
+                    <div className="card border-0 shadow-sm p-4 h-100 bg-danger-subtle border-start border-danger border-4">
+                        <h4 className="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i className="fas fa-exclamation-triangle text-danger"></i> Alertas Críticas del Sistema
+                        </h4>
+                        <div className="d-grid gap-3">
+                            <div className="alert alert-danger mb-0 d-flex align-items-start gap-3">
+                                <i className="fas fa-box-open fs-4 mt-1"></i>
+                                <div>
+                                    <div className="fw-bold">Stock Crítico Detectado</div>
+                                    <div className="small">3 productos requieren reabastecimiento inmediato</div>
+                                    <button className="btn btn-sm btn-danger mt-2 rounded-pill px-3">Ver Productos</button>
+                                </div>
+                            </div>
+                            <div className="alert alert-warning mb-0 d-flex align-items-start gap-3">
+                                <i className="fas fa-credit-card fs-4 mt-1"></i>
+                                <div>
+                                    <div className="fw-bold">Pagos Pendientes</div>
+                                    <div className="small">5 clientes con facturas vencidas por $18,500</div>
+                                    <button className="btn btn-sm btn-warning mt-2 rounded-pill px-3">Gestionar</button>
+                                </div>
+                            </div>
+                            <div className="alert alert-info mb-0 d-flex align-items-start gap-3">
+                                <i className="fas fa-sync fs-4 mt-1"></i>
+                                <div>
+                                    <div className="fw-bold">Actualización Disponible</div>
+                                    <div className="small">Nueva versión del sistema ERP v2.4.1</div>
+                                    <button className="btn btn-sm btn-info mt-2 rounded-pill px-3">Actualizar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* NUEVA SECCIÓN ADMIN: Comparativa Mensual */}
+            <div className="row g-4 mt-2 mb-5">
+                <div className="col-12" data-aos="fade-up">
+                    <div className="card border-0 shadow-sm p-4 bg-gradient" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <h4 className="fw-bold m-0"><i className="fas fa-calendar-alt text-primary me-2"></i> Comparativa Mensual</h4>
+                            <div className="d-flex gap-2">
+                                <button className="btn btn-sm btn-outline-primary rounded-pill px-3">Enero</button>
+                                <button className="btn btn-sm btn-primary rounded-pill px-3">Febrero</button>
+                                <button className="btn btn-sm btn-outline-primary rounded-pill px-3">Marzo</button>
+                            </div>
+                        </div>
+                        <div className="row g-4">
+                            <div className="col-md-3">
+                                <div className="bg-white p-3 rounded-4 shadow-sm text-center">
+                                    <i className="fas fa-shopping-cart text-primary fs-3 mb-2"></i>
+                                    <div className="small text-muted mb-1">Ventas Totales</div>
+                                    <div className="h4 fw-bold text-dark m-0">$245,000</div>
+                                    <div className="small text-success fw-bold mt-1">
+                                        <i className="fas fa-arrow-up"></i> +15.2% vs mes anterior
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-3">
+                                <div className="bg-white p-3 rounded-4 shadow-sm text-center">
+                                    <i className="fas fa-users text-success fs-3 mb-2"></i>
+                                    <div className="small text-muted mb-1">Nuevos Clientes</div>
+                                    <div className="h4 fw-bold text-dark m-0">47</div>
+                                    <div className="small text-success fw-bold mt-1">
+                                        <i className="fas fa-arrow-up"></i> +8.5% vs mes anterior
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-3">
+                                <div className="bg-white p-3 rounded-4 shadow-sm text-center">
+                                    <i className="fas fa-box text-warning fs-3 mb-2"></i>
+                                    <div className="small text-muted mb-1">Productos Vendidos</div>
+                                    <div className="h4 fw-bold text-dark m-0">1,284</div>
+                                    <div className="small text-danger fw-bold mt-1">
+                                        <i className="fas fa-arrow-down"></i> -3.2% vs mes anterior
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-3">
+                                <div className="bg-white p-3 rounded-4 shadow-sm text-center">
+                                    <i className="fas fa-star text-accent fs-3 mb-2"></i>
+                                    <div className="small text-muted mb-1">Satisfacción</div>
+                                    <div className="h4 fw-bold text-dark m-0">4.8/5</div>
+                                    <div className="small text-success fw-bold mt-1">
+                                        <i className="fas fa-arrow-up"></i> +0.3 vs mes anterior
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SellerDashboard = ({ navigate }) => {
+    const salesTarget = 5000;
+    const currentSales = 4200;
+    const progress = Math.min((currentSales / salesTarget) * 100, 100);
+
+    return (
+        <div className="container-fluid p-0">
+            <div className="info-section mb-5" data-aos="fade-down">
+                <h2 className="display-6 fw-bold text-gradient">Panel de Ventas</h2>
+                <p className="text-muted fs-5">Gestiona tus pedidos y revisa tus metas diarias en tiempo real.</p>
+            </div>
+
+            <div className="row g-4 mb-5">
+                 <div className="col-12 col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div className="card h-100 border-0 shadow-sm p-4">
+                        <h3 className="d-flex align-items-center gap-2 mb-3 h5 fw-bold text-secondary">
+                            <i className="fas fa-wallet"></i> Mi Progreso de Venta
+                        </h3>
+                        <div className="display-5 fw-bold mb-3 text-dark">$ {currentSales.toLocaleString()}</div>
+                        <div className="progress mb-2" style={{ height: '10px' }}>
+                            <div className="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: `${progress}%` }}></div>
+                        </div>
+                        <p className="text-muted small fw-medium text-uppercase tracking-wider">{progress.toFixed(0)}% de la meta diaria</p>
+                    </div>
+                 </div>
+
+                 <div className="col-12 col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div 
+                        onClick={() => navigate('/my-sales')} 
+                        className="card h-100 border-0 shadow-sm p-4 cursor-pointer hover-lift text-center group"
+                    >
+                        <div className="w-16 h-16 bg-primary-subtle rounded-circle d-flex items-center justify-center mx-auto mb-4 group-hover:bg-primary transition-all duration-300">
+                            <i className="fas fa-cash-register text-primary group-hover:text-white text-2xl"></i>
+                        </div>
+                        <h3 className="h5 fw-bold text-primary mb-2">Terminal de Venta</h3>
+                        <p className="text-muted small">Comenzar a facturar nuevos pedidos ahora mismo.</p>
+                        <div className="mt-auto">
+                            <span className="btn btn-primary btn-sm rounded-pill px-4">Abrir POS</span>
+                        </div>
+                    </div>
+                 </div>
+
+                 <div className="col-12 col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div 
+                        onClick={() => navigate('/my-sales')} 
+                        className="card h-100 border-0 shadow-sm p-4 cursor-pointer hover-lift text-center group border-bottom border-accent border-4"
+                    >
+                        <div className="w-16 h-16 bg-accent-subtle rounded-circle d-flex items-center justify-center mx-auto mb-4 group-hover:bg-accent transition-all duration-300">
+                            <i className="fas fa-list-check text-accent group-hover:text-white text-2xl"></i>
+                        </div>
+                        <h3 className="h5 fw-bold text-accent mb-2">Mis Ventas</h3>
+                        <p className="text-muted small">Seguimiento de ventas realizadas y metas alcanzadas.</p>
+                        <div className="mt-auto">
+                            <span className="btn btn-outline-accent btn-sm rounded-pill px-4">Ver Historial</span>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+            
+            <div className="card border-0 shadow-sm p-4 bg-light border-start border-primary border-4 mb-4" data-aos="zoom-in">
+                 <h4 className="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i className="fas fa-lightbulb text-warning"></i> Tips de Venta del Día
+                 </h4>
+                 <div className="row">
+                    <div className="col-md-9">
+                        <p className="text-muted mb-0 leading-relaxed">
+                            Recuerda ofrecer <strong>cables HDMI 4K</strong> en cada venta de monitores. 
+                            Este mes tenemos un <span className="badge bg-success">15% de comisión extra</span> en accesorios de la marca Logitech.
+                        </p>
+                    </div>
+                    <div className="col-md-3 text-end d-hidden d-md-block">
+                        <i className="fas fa-award text-primary opacity-20" style={{ fontSize: '60px' }}></i>
+                    </div>
+                 </div>
+            </div>
+
+            {/* Nueva sección para Seller: Objetivos y Clientes */}
+            <div className="row g-4 mb-5">
+                <div className="col-12 col-lg-8" data-aos="fade-right">
+                    <div className="card border-0 shadow-sm p-4 h-100">
+                        <h4 className="fw-bold mb-4"><i className="fas fa-trophy text-warning me-2"></i> Productos Más Vendidos por Mí</h4>
+                        <div className="table-responsive">
+                            <table className="table table-sm align-middle mb-0">
+                                <thead className="text-muted small">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Vendidos</th>
+                                        <th>Total</th>
+                                        <th>Comisión</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className="fw-bold small">iPhone 13 Pro Max</td>
+                                        <td className="small">5</td>
+                                        <td className="small fw-bold text-dark">$85,000</td>
+                                        <td className="small text-success fw-bold">+$850</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="fw-bold small">AirPods Pro Gen 2</td>
+                                        <td className="small">12</td>
+                                        <td className="small fw-bold text-dark">$52,000</td>
+                                        <td className="small text-success fw-bold">+$520</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="fw-bold small">Logitech MX Master 3</td>
+                                        <td className="small">8</td>
+                                        <td className="small fw-bold text-dark">$11,200</td>
+                                        <td className="small text-success fw-bold">+$224</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-12 col-lg-4" data-aos="fade-left">
+                    <div className="card border-0 shadow-sm p-4 h-100">
+                        <h4 className="fw-bold mb-3 small text-uppercase tracking-wider text-muted">Próximos Seguimientos</h4>
+                        <div className="d-grid gap-3">
+                            <div className="d-flex align-items-center gap-3 p-2 bg-light rounded-3">
+                                <div className="bg-primary text-white rounded-circle w-10 h-10 d-flex align-items-center justify-content-center flex-shrink-0">
+                                    <i className="fas fa-phone-alt x-small"></i>
+                                </div>
+                                <div>
+                                    <div className="fw-bold small">Pedro Gómez</div>
+                                    <div className="text-muted" style={{ fontSize: '10px' }}>Confirmar pedido #9022</div>
+                                </div>
+                            </div>
+                            <div className="d-flex align-items-center gap-3 p-2 bg-light rounded-3">
+                                <div className="bg-primary text-white rounded-circle w-10 h-10 d-flex align-items-center justify-content-center flex-shrink-0">
+                                    <i className="fas fa-envelope x-small"></i>
+                                </div>
+                                <div>
+                                    <div className="fw-bold small">Lucía Méndez</div>
+                                    <div className="text-muted" style={{ fontSize: '10px' }}>Enviar catálogo VIP</div>
+                                </div>
+                            </div>
+                            <button className="btn btn-primary btn-sm rounded-pill mt-2">Agendar Nuevo Task</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Nueva sección para Seller: Notificaciones Rápidas y CRM Base */}
+            <div className="row g-4 mb-5">
+                <div className="col-12 col-md-6" data-aos="fade-up">
+                    <div className="card border-0 shadow-sm p-4 bg-white">
+                        <h4 className="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i className="fas fa-bullseye text-danger"></i> Mi Meta Semanal
+                        </h4>
+                        <div className="mb-4">
+                            <div className="d-flex justify-content-between mb-2 small fw-bold">
+                                <span>Volumen de Ventas</span>
+                                <span>$4,200 / $5,000</span>
+                            </div>
+                            <div className="progress rounded-pill shadow-sm" style={{ height: '12px' }}>
+                                <div className="progress-bar bg-success progress-bar-striped progress-bar-animated" style={{ width: '84%' }}>84%</div>
+                            </div>
+                        </div>
+                        <div className="row g-2 text-center">
+                            <div className="col-4">
+                                <div className="bg-light p-2 rounded-3">
+                                    <div className="small text-muted x-small">Ventas</div>
+                                    <div className="fw-bold">128</div>
+                                </div>
+                            </div>
+                            <div className="col-4">
+                                <div className="bg-light p-2 rounded-3">
+                                    <div className="small text-muted x-small">Clientes</div>
+                                    <div className="fw-bold">45</div>
+                                </div>
+                            </div>
+                            <div className="col-4">
+                                <div className="bg-light p-2 rounded-3">
+                                    <div className="small text-muted x-small">Retorno</div>
+                                    <div className="fw-bold">12%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-12 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div className="card border-0 shadow-sm p-4 bg-primary text-white bg-gradient">
+                        <h4 className="fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i className="fas fa-bolt"></i> Acciones del Turno
+                        </h4>
+                        <div className="d-grid gap-2">
+                            <button className="btn btn-light btn-sm text-primary fw-bold rounded-pill text-start p-2 px-3">
+                                <i className="fas fa-envelope-open-text me-2"></i> Enviar ofertas a clientes inactivos
+                            </button>
+                            <button className="btn btn-light btn-sm text-primary fw-bold rounded-pill text-start p-2 px-3">
+                                <i className="fas fa-file-invoice-dollar me-2"></i> Reportar arqueo de caja parcial
+                            </button>
+                            <button className="btn btn-light btn-sm text-primary fw-bold rounded-pill text-start p-2 px-3">
+                                <i className="fas fa-plus-circle me-2"></i> Registrar gasto de insumos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* NUEVA SECCIÓN SELLER: Ranking de Vendedores */}
+            <div className="row g-4 mb-5">
+                <div className="col-12 col-lg-6" data-aos="fade-right">
+                    <div className="card border-0 shadow-sm p-4 h-100 bg-gradient" style={{ background: 'linear-gradient(135deg, #fff 0%, #f8f9fa 100%)' }}>
+                        <h4 className="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i className="fas fa-medal text-warning"></i> Ranking del Mes
+                        </h4>
+                        <div className="d-grid gap-3">
+                            <div className="d-flex align-items-center gap-3 p-3 bg-warning-subtle rounded-4 border border-warning">
+                                <div className="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '45px', height: '45px', fontSize: '20px' }}>
+                                    1
+                                </div>
+                                <div className="flex-1">
+                                    <div className="fw-bold">María González</div>
+                                    <div className="small text-muted">$128,500 en ventas</div>
+                                </div>
+                                <i className="fas fa-crown text-warning fs-3"></i>
+                            </div>
+                            <div className="d-flex align-items-center gap-3 p-3 bg-light rounded-4 border">
+                                <div className="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px' }}>
+                                    2
+                                </div>
+                                <div className="flex-1">
+                                    <div className="fw-bold">Tú (Juan Pérez)</div>
+                                    <div className="small text-muted">$84,200 en ventas</div>
+                                </div>
+                                <span className="badge bg-success rounded-pill">+2 posiciones</span>
+                            </div>
+                            <div className="d-flex align-items-center gap-3 p-3 bg-light rounded-4">
+                                <div className="bg-light border text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px' }}>
+                                    3
+                                </div>
+                                <div className="flex-1">
+                                    <div className="fw-bold">Roberto Sánchez</div>
+                                    <div className="small text-muted">$76,800 en ventas</div>
+                                </div>
+                            </div>
+                            <div className="d-flex align-items-center gap-3 p-3 bg-light rounded-4">
+                                <div className="bg-light border text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px' }}>
+                                    4
+                                </div>
+                                <div className="flex-1">
+                                    <div className="fw-bold">Ana Martínez</div>
+                                    <div className="small text-muted">$68,400 en ventas</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="alert alert-info mt-3 mb-0 small">
+                            <i className="fas fa-info-circle me-2"></i>
+                            Te faltan <strong>$44,300</strong> para alcanzar el primer lugar
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-12 col-lg-6" data-aos="fade-left">
+                    <div className="card border-0 shadow-sm p-4 h-100">
+                        <h4 className="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i className="fas fa-calendar-check text-primary"></i> Calendario de Eventos
+                        </h4>
+                        <div className="d-grid gap-3">
+                            <div className="d-flex gap-3 p-3 bg-primary-subtle rounded-4 border border-primary-subtle">
+                                <div className="text-center" style={{ minWidth: '60px' }}>
+                                    <div className="fw-bold text-primary" style={{ fontSize: '24px' }}>05</div>
+                                    <div className="small text-muted">FEB</div>
+                                </div>
+                                <div className="flex-1">
+                                    <div className="fw-bold">Capacitación: Nuevos Productos Apple</div>
+                                    <div className="small text-muted mb-2"><i className="far fa-clock me-1"></i> 10:00 AM - 12:00 PM</div>
+                                    <span className="badge bg-primary">Obligatorio</span>
+                                </div>
+                            </div>
+                            <div className="d-flex gap-3 p-3 bg-light rounded-4">
+                                <div className="text-center" style={{ minWidth: '60px' }}>
+                                    <div className="fw-bold text-dark" style={{ fontSize: '24px' }}>08</div>
+                                    <div className="small text-muted">FEB</div>
+                                </div>
+                                <div className="flex-1">
+                                    <div className="fw-bold">Cierre de Meta Semanal</div>
+                                    <div className="small text-muted mb-2"><i className="far fa-clock me-1"></i> Todo el día</div>
+                                    <span className="badge bg-warning">Importante</span>
+                                </div>
+                            </div>
+                            <div className="d-flex gap-3 p-3 bg-light rounded-4">
+                                <div className="text-center" style={{ minWidth: '60px' }}>
+                                    <div className="fw-bold text-dark" style={{ fontSize: '24px' }}>12</div>
+                                    <div className="small text-muted">FEB</div>
+                                </div>
+                                <div className="flex-1">
+                                    <div className="fw-bold">Reunión Mensual de Ventas</div>
+                                    <div className="small text-muted mb-2"><i className="far fa-clock me-1"></i> 3:00 PM - 5:00 PM</div>
+                                    <span className="badge bg-secondary">Reunión</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button className="btn btn-outline-primary btn-sm rounded-pill mt-3 fw-bold">
+                            <i className="fas fa-plus me-2"></i>Agregar Evento
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* NUEVA SECCIÓN SELLER: Herramientas Rápidas */}
+            <div className="row g-4 mb-5">
+                <div className="col-12" data-aos="fade-up">
+                    <div className="card border-0 shadow-sm p-4 bg-dark text-white">
+                        <h4 className="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i className="fas fa-tools text-accent"></i> Herramientas Rápidas
+                        </h4>
+                        <div className="row g-3">
+                            <div className="col-md-4">
+                                <div className="bg-white/10 p-4 rounded-4 border border-white/20 h-100">
+                                    <div className="d-flex align-items-center gap-3 mb-3">
+                                        <i className="fas fa-calculator text-accent fs-2"></i>
+                                        <h5 className="fw-bold m-0">Calculadora de Comisión</h5>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="small text-white-50 mb-1">Monto de Venta</label>
+                                        <input type="number" className="form-control form-control-sm" placeholder="$0.00" />
+                                    </div>
+                                    <div className="d-flex justify-content-between align-items-center p-2 bg-success rounded-3">
+                                        <span className="small">Tu comisión (10%):</span>
+                                        <span className="fw-bold">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-4">
+                                <div className="bg-white/10 p-4 rounded-4 border border-white/20 h-100">
+                                    <div className="d-flex align-items-center gap-3 mb-3">
+                                        <i className="fas fa-percentage text-warning fs-2"></i>
+                                        <h5 className="fw-bold m-0">Descuentos Autorizados</h5>
+                                    </div>
+                                    <div className="d-grid gap-2">
+                                        <div className="d-flex justify-content-between p-2 bg-white/5 rounded-3">
+                                            <span className="small">Nivel Bronce:</span>
+                                            <span className="badge bg-light text-dark">5%</span>
+                                        </div>
+                                        <div className="d-flex justify-content-between p-2 bg-white/5 rounded-3">
+                                            <span className="small">Nivel Plata:</span>
+                                            <span className="badge bg-light text-dark">10%</span>
+                                        </div>
+                                        <div className="d-flex justify-content-between p-2 bg-white/5 rounded-3">
+                                            <span className="small">Nivel Oro:</span>
+                                            <span className="badge bg-warning text-dark">15%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-4">
+                                <div className="bg-white/10 p-4 rounded-4 border border-white/20 h-100">
+                                    <div className="d-flex align-items-center gap-3 mb-3">
+                                        <i className="fas fa-qrcode text-primary fs-2"></i>
+                                        <h5 className="fw-bold m-0">Código QR de Vendedor</h5>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="bg-white p-3 rounded-3 d-inline-block mb-2">
+                                            <i className="fas fa-qrcode text-dark" style={{ fontSize: '80px' }}></i>
+                                        </div>
+                                        <div className="small text-white-50">Escanea para contacto directo</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ClientDashboard = ({ navigate }) => {
+    return (
+        <div className="container-fluid p-0">
+             {/* Header Principal - Limpio y Profesional */}
+             <div className="info-section mb-4" data-aos="fade-down">
+                <div className="d-flex justify-content-between align-items-center bg-white p-4 rounded-4 shadow-sm border-start border-primary border-5">
+                    <div>
+                        <h2 className="display-6 fw-bold text-gradient mb-1">Panel de Control</h2>
+                        <p className="text-muted m-0">Hola de nuevo. Aquí tienes un resumen de tu cuenta.</p>
+                    </div>
+                    <div className="text-end">
+                        <div className="d-flex align-items-center gap-3">
+                            <div className="text-end d-none d-sm-block">
+                                <span className="d-block fw-bold text-dark">Nivel Oro</span>
+                                <span className="text-muted small">850 pts para Platino</span>
+                            </div>
+                            <div className="bg-primary text-white p-3 rounded-circle shadow-sm">
+                                <i className="fas fa-crown fa-lg text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Fila de Métricas Rápidas */}
+            <div className="row g-4 mb-4" data-aos="fade-up">
+                <div className="col-6 col-lg-3">
+                    <div className="card border-0 shadow-sm p-3 h-100 text-center hover-lift">
+                        <div className="text-muted small fw-bold text-uppercase mb-1">Crédito</div>
+                        <div className="h4 fw-extrabold text-success m-0">$12,000</div>
+                    </div>
+                </div>
+                <div className="col-6 col-lg-3">
+                    <div className="card border-0 shadow-sm p-3 h-100 text-center hover-lift border-bottom border-danger border-3">
+                        <div className="text-muted small fw-bold text-uppercase mb-1">Por Pagar</div>
+                        <div className="h4 fw-extrabold text-danger m-0">$1,200</div>
+                    </div>
+                </div>
+                <div className="col-6 col-lg-3">
+                    <div className="card border-0 shadow-sm p-3 h-100 text-center hover-lift">
+                        <div className="text-muted small fw-bold text-uppercase mb-1">Pedidos Activos</div>
+                        <div className="h4 fw-extrabold text-primary m-0">2</div>
+                    </div>
+                </div>
+                <div className="col-6 col-lg-3">
+                    <div className="card border-0 shadow-sm p-3 h-100 text-center hover-lift">
+                        <div className="text-muted small fw-bold text-uppercase mb-1">Puntos Tech</div>
+                        <div className="h4 fw-extrabold text-warning m-0">4,250</div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="row g-4">
+                {/* Columna Principal (Izquierda) */}
+                <div className="col-12 col-xl-8">
+                    {/* Rastreador de Pedido */}
+                    <div className="card border-0 shadow-sm mb-4 overflow-hidden" data-aos="fade-right">
+                        <div className="card-header bg-white p-4 border-0">
+                            <h5 className="fw-bold m-0"><i className="fas fa-truck text-primary me-2"></i> Seguimiento de Pedido #9022</h5>
+                        </div>
+                        <div className="card-body p-4 pt-0">
+                            <div className="d-flex justify-content-between mb-4 position-relative">
+                                {/* Línea de progreso de fondo */}
+                                <div className="position-absolute w-100 bg-light" style={{ height: '4px', top: '23px', zIndex: 0 }}></div>
+                                <div className="position-absolute bg-primary" style={{ height: '4px', top: '23px', width: '50%', zIndex: 1 }}></div>
+                                
+                                <div className="text-center position-relative z-10" style={{ width: '25%' }}>
+                                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow" style={{ width: '50px', height: '50px' }}>
+                                        <i className="fas fa-file-invoice"></i>
+                                    </div>
+                                    <div className="small fw-bold">Recibido</div>
+                                </div>
+                                <div className="text-center position-relative z-10" style={{ width: '25%' }}>
+                                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow" style={{ width: '50px', height: '50px' }}>
+                                        <i className="fas fa-box"></i>
+                                    </div>
+                                    <div className="small fw-bold">Preparando</div>
+                                </div>
+                                <div className="text-center position-relative z-10" style={{ width: '25%' }}>
+                                    <div className="bg-white border text-muted rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style={{ width: '50px', height: '50px' }}>
+                                        <i className="fas fa-shipping-fast"></i>
+                                    </div>
+                                    <div className="small text-muted">En Camino</div>
+                                </div>
+                                <div className="text-center position-relative z-10" style={{ width: '25%' }}>
+                                    <div className="bg-white border text-muted rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style={{ width: '50px', height: '50px' }}>
+                                        <i className="fas fa-check-double"></i>
+                                    </div>
+                                    <div className="small text-muted">Entregado</div>
+                                </div>
+                            </div>
+                            <div className="alert bg-primary-subtle border-0 mb-0 d-flex align-items-center gap-3">
+                                <i className="fas fa-info-circle text-primary fs-4"></i>
+                                <div className="small text-dark">Tu pedido fue procesado en <strong>Almacén Central (CDMX)</strong> y está siendo empacado. Tiempo estimado de salida: 2 horas.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Pedidos Recientes */}
+                    <div className="card border-0 shadow-sm mb-4" data-aos="fade-up">
+                        <div className="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
+                            <h5 className="fw-bold m-0"><i className="fas fa-history text-secondary me-2"></i> Mis Pedidos Recientes</h5>
+                            <button onClick={() => navigate('/client-orders')} className="btn btn-link btn-sm fw-bold text-decoration-none p-0 text-primary">Ver todos</button>
+                        </div>
+                        <div className="table-responsive px-4 pb-4">
+                            <table className="table table-hover align-middle mb-0">
+                                <thead className="table-light">
+                                    <tr className="small text-muted">
+                                        <th>ID</th>
+                                        <th>Fecha</th>
+                                        <th>Total</th>
+                                        <th className="text-center">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className="fw-bold">#9022</td>
+                                        <td className="small">Hoy, 09:30</td>
+                                        <td className="fw-bold">$2,450</td>
+                                        <td className="text-center"><span className="badge bg-primary-subtle text-primary rounded-pill px-3">Procesando</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td className="fw-bold">#8985</td>
+                                        <td className="small">01 Feb, 14:20</td>
+                                        <td className="fw-bold">$12,800</td>
+                                        <td className="text-center"><span className="badge bg-success-subtle text-success rounded-pill px-3">Entregado</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td className="fw-bold">#8850</td>
+                                        <td className="small">28 Ene, 11:15</td>
+                                        <td className="fw-bold">$540</td>
+                                        <td className="text-center"><span className="badge bg-success-subtle text-success rounded-pill px-3">Entregado</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Columna Lateral (Derecha) */}
+                <div className="col-12 col-xl-4">
+                    {/* Atención VIP */}
+                    <div className="card border-0 shadow-sm mb-4 bg-primary text-white bg-gradient overflow-hidden relative" data-aos="fade-left">
+                        <div className="card-body p-4 relative z-10">
+                            <h5 className="fw-bold mb-3"><i className="fas fa-headset me-2"></i> Asistencia VIP</h5>
+                            <p className="small opacity-75 mb-4">Tienes un asesor asignado para ayudarte con cualquier duda técnica o financiera.</p>
+                            <div className="d-flex align-items-center gap-3 bg-white/10 p-3 rounded-4 mb-4">
+                                <img src="https://ui-avatars.com/api/?name=Carlos+Asesor&background=fff&color=0C324A" className="rounded-circle border border-white/20" width="45" alt="Avatar" />
+                                <div>
+                                    <div className="fw-bold small">Carlos Martínez</div>
+                                    <div className="text-white-50" style={{ fontSize: '10px' }}>Asesor de Cuenta Senior</div>
+                                </div>
+                                <div className="ms-auto">
+                                    <span className="badge bg-success rounded-circle p-1"><span className="visually-hidden">Online</span></span>
+                                </div>
+                            </div>
+                            <button onClick={() => navigate('/support')} className="btn btn-light w-100 rounded-pill fw-bold text-primary">Chat Directo</button>
+                        </div>
+                        <i className="fas fa-user-tie absolute -bottom-5 -right-5 text-white opacity-10" style={{ fontSize: '120px' }}></i>
+                    </div>
+
+                    {/* Acciones Rápidas */}
+                    <div className="card border-0 shadow-sm mb-4 overflow-hidden" data-aos="fade-left" data-aos-delay="100">
+                        <div className="card-header bg-white p-4 border-0">
+                            <h5 className="fw-bold m-0">Acciones Directas</h5>
+                        </div>
+                        <div className="card-body p-4 pt-0">
+                            <div className="row g-2">
+                                <div className="col-6">
+                                    <button onClick={() => navigate('/catalog')} className="btn btn-outline-primary w-100 py-3 rounded-4 d-flex flex-column align-items-center border-2 border-primary-subtle hover-lift">
+                                        <i className="fas fa-shopping-cart mb-2 fa-lg"></i>
+                                        <span className="small fw-bold">Nuevo Pedido</span>
+                                    </button>
+                                </div>
+                                <div className="col-6">
+                                    <button onClick={() => navigate('/account-statement')} className="btn btn-outline-secondary w-100 py-3 rounded-4 d-flex flex-column align-items-center border-2 border-secondary-subtle hover-lift">
+                                        <i className="fas fa-file-invoice-dollar mb-2 fa-lg"></i>
+                                        <span className="small fw-bold">Mis Pagos</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Banner de Promo */}
+                    <div className="card border-0 shadow-sm bg-accent text-white rounded-4 overflow-hidden" data-aos="zoom-in" data-aos-delay="200">
+                        <div className="p-4 relative">
+                            <span className="badge bg-white text-accent mb-2">Exclusivo VIP</span>
+                            <h4 className="fw-bold">Dui Tech Days</h4>
+                            <p className="small mb-4 opacity-75">Obtén <strong>10% extra de crédito</strong> por cada compra mayor a $5,000 durante esta semana.</p>
+                            <button onClick={() => navigate('/catalog')} className="btn btn-outline-light btn-sm rounded-pill fw-bold px-4">Saber más</button>
+                            <i className="fas fa-tags absolute -top-5 -right-5 opacity-20" style={{ fontSize: '80px' }}></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Fila Inferior: Seguridad y Noticias + Nueva sección Beneficios Tech */}
+            <div className="row g-4 mt-1 mb-5">
+                <div className="col-12 col-lg-4" data-aos="fade-up">
+                    <div className="card border-0 shadow-sm p-4">
+                        <h5 className="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i className="fas fa-shield-alt text-primary"></i> Actividad de Seguridad
+                        </h5>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover border-0 mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td className="border-0 py-3"><i className="fas fa-sign-in-alt text-success me-3"></i> Login: Chrome en Windows</td>
+                                        <td className="border-0 py-3 text-end text-muted small fw-bold">Hoy, 11:01 AM</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border-0 py-3"><i className="fas fa-key text-warning me-3"></i> Cambio de Pass</td>
+                                        <td className="border-0 py-3 text-end text-muted small fw-bold">01 Feb, 09:12 AM</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-12 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div className="card border-0 shadow-sm p-4 h-100 bg-light">
+                        <h5 className="fw-bold mb-3">Avisos del Sistema</h5>
+                        <div className="d-flex flex-column gap-3">
+                            <div className="d-flex gap-3">
+                                <div className="bg-white p-2 rounded-3 shadow-sm flex-shrink-0" style={{ height: 'fit-content' }}>
+                                    <i className="fas fa-bullhorn text-primary"></i>
+                                </div>
+                                <div className="small">
+                                    <div className="fw-bold">Nuevo Almacén en el Norte</div>
+                                    <div className="text-muted">Ahora tus envíos a Monterrey llegarán en 24 horas.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-12 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div className="card border-0 shadow-sm p-4 h-100 bg-dark text-white text-center d-flex flex-column justify-content-center">
+                        <div className="mb-3">
+                            <i className="fas fa-star text-warning fa-2xl"></i>
+                        </div>
+                        <h5 className="fw-bold text-accent">Dui Tech Rewards</h5>
+                        <p className="small opacity-75 mb-3">Canjea tus 4,250 puntos por cupones de envío gratis o descuentos directos.</p>
+                        <button className="btn btn-outline-light btn-sm rounded-pill px-4">Ir a Recompensas</button>
+                    </div>
+                </div>
+            </div>
+
+            {/* NUEVA SECCIÓN CLIENTE: Ofertas Relámpago y Centro de Ayuda */}
+            <div className="row g-4 mt-2 mb-5">
+                <div className="col-12 col-md-8" data-aos="fade-up">
+                    <div className="card border-0 shadow-sm p-4 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #0C324A 0%, #2a526d 100%)', color: 'white' }}>
+                        <div className="relative z-10">
+                            <h4 className="fw-bold mb-2">🔥 ¡Ofertas Relámpago!</h4>
+                            <p className="small opacity-75 mb-4">Solo por las próximas 4 horas. ¡Aprovecha estos precios!</p>
+                            <div className="row g-3">
+                                <div className="col-4">
+                                    <div className="bg-white/10 p-2 rounded-3 text-center border border-white/10">
+                                        <div className="small x-small text-white-50">SSD 1TB</div>
+                                        <div className="fw-bold">$890</div>
+                                        <div className="badge bg-danger rounded-pill x-small">-40%</div>
+                                    </div>
+                                </div>
+                                <div className="col-4">
+                                    <div className="bg-white/10 p-2 rounded-3 text-center border border-white/10">
+                                        <div className="small x-small text-white-50">Teclado Mec</div>
+                                        <div className="fw-bold">$1,200</div>
+                                        <div className="badge bg-danger rounded-pill x-small">-25%</div>
+                                    </div>
+                                </div>
+                                <div className="col-4">
+                                    <div className="bg-white/10 p-2 rounded-3 text-center border border-white/10">
+                                        <div className="small x-small text-white-50">Mouse Gamer</div>
+                                        <div className="fw-bold">$450</div>
+                                        <div className="badge bg-danger rounded-pill x-small">-50%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <i className="fas fa-bolt absolute -right-5 -bottom-5 text-white opacity-5" style={{ fontSize: '150px' }}></i>
+                    </div>
+                </div>
+                <div className="col-12 col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div className="card border-0 shadow-sm p-4 h-100 bg-white border-top border-accent border-4">
+                        <h5 className="fw-bold mb-3">¿Necesitas Ayuda?</h5>
+                        <p className="small text-muted mb-4">Nuestro equipo de soporte está disponible 24/7 para ti.</p>
+                        <div className="d-grid gap-2">
+                            <button onClick={() => navigate('/support')} className="btn btn-outline-primary btn-sm rounded-pill fw-bold">Preguntas Frecuentes</button>
+                            <button onClick={() => navigate('/support')} className="btn btn-accent btn-sm rounded-pill fw-bold">Hablar con humano</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* NUEVA SECCIÓN CLIENTE: Historial de Compras Detallado */}
+            <div className="row g-4 mt-2 mb-5">
+                <div className="col-12 col-lg-8" data-aos="fade-right">
+                    <div className="card border-0 shadow-sm p-4 h-100">
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <h4 className="fw-bold m-0"><i className="fas fa-chart-area text-primary me-2"></i> Análisis de Compras</h4>
+                            <select className="form-select form-select-sm w-auto">
+                                <option>Últimos 3 meses</option>
+                                <option>Últimos 6 meses</option>
+                                <option>Último año</option>
+                            </select>
+                        </div>
+                        <div className="row g-3 mb-4">
+                            <div className="col-md-4">
+                                <div className="p-3 bg-primary-subtle rounded-4 text-center">
+                                    <i className="fas fa-shopping-bag text-primary fs-3 mb-2"></i>
+                                    <div className="small text-muted mb-1">Total Gastado</div>
+                                    <div className="h4 fw-bold text-primary m-0">$48,750</div>
+                                </div>
+                            </div>
+                            <div className="col-md-4">
+                                <div className="p-3 bg-success-subtle rounded-4 text-center">
+                                    <i className="fas fa-box text-success fs-3 mb-2"></i>
+                                    <div className="small text-muted mb-1">Productos Comprados</div>
+                                    <div className="h4 fw-bold text-success m-0">23</div>
+                                </div>
+                            </div>
+                            <div className="col-md-4">
+                                <div className="p-3 bg-warning-subtle rounded-4 text-center">
+                                    <i className="fas fa-receipt text-warning fs-3 mb-2"></i>
+                                    <div className="small text-muted mb-1">Ticket Promedio</div>
+                                    <div className="h4 fw-bold text-warning m-0">$2,120</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="table-responsive">
+                            <table className="table table-sm align-middle mb-0">
+                                <thead className="text-muted small">
+                                    <tr>
+                                        <th>Categoría</th>
+                                        <th className="text-center">Compras</th>
+                                        <th className="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className="fw-bold small">Smartphones</td>
+                                        <td className="text-center small">5</td>
+                                        <td className="text-end small fw-bold">$28,500</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="fw-bold small">Accesorios</td>
+                                        <td className="text-center small">12</td>
+                                        <td className="text-end small fw-bold">$8,450</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="fw-bold small">Laptops</td>
+                                        <td className="text-center small">3</td>
+                                        <td className="text-end small fw-bold">$11,800</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-12 col-lg-4" data-aos="fade-left">
+                    <div className="card border-0 shadow-sm p-4 h-100 bg-gradient" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+                        <h5 className="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i className="fas fa-star text-warning"></i> Productos Recomendados
+                        </h5>
+                        <div className="d-grid gap-3">
+                            <div className="bg-white p-3 rounded-4 shadow-sm">
+                                <div className="d-flex gap-3">
+                                    <div className="bg-light rounded-3 d-flex align-items-center justify-content-center" style={{ width: '60px', height: '60px' }}>
+                                        <i className="fas fa-headphones text-primary fs-4"></i>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="fw-bold small">AirPods Pro Gen 2</div>
+                                        <div className="text-muted x-small mb-2">Basado en tus compras</div>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <span className="fw-bold text-primary">$4,299</span>
+                                            <button className="btn btn-sm btn-primary rounded-pill px-3">Ver</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white p-3 rounded-4 shadow-sm">
+                                <div className="d-flex gap-3">
+                                    <div className="bg-light rounded-3 d-flex align-items-center justify-content-center" style={{ width: '60px', height: '60px' }}>
+                                        <i className="fas fa-laptop text-success fs-4"></i>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="fw-bold small">MacBook Air M2</div>
+                                        <div className="text-muted x-small mb-2">Popular en tu categoría</div>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <span className="fw-bold text-success">$24,999</span>
+                                            <button className="btn btn-sm btn-success rounded-pill px-3">Ver</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white p-3 rounded-4 shadow-sm">
+                                <div className="d-flex gap-3">
+                                    <div className="bg-light rounded-3 d-flex align-items-center justify-content-center" style={{ width: '60px', height: '60px' }}>
+                                        <i className="fas fa-tablet-alt text-warning fs-4"></i>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="fw-bold small">iPad Pro 11"</div>
+                                        <div className="text-muted x-small mb-2">Oferta especial</div>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <span className="fw-bold text-warning">$18,499</span>
+                                            <button className="btn btn-sm btn-warning rounded-pill px-3">Ver</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* NUEVA SECCIÓN CLIENTE: Programa de Referidos */}
+            <div className="row g-4 mt-2 mb-5">
+                <div className="col-12" data-aos="fade-up">
+                    <div className="card border-0 shadow-lg p-4 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)', color: 'white' }}>
+                        <div className="row align-items-center relative z-10">
+                            <div className="col-md-8">
+                                <div className="d-flex align-items-center gap-3 mb-3">
+                                    <div className="bg-white/20 p-3 rounded-circle">
+                                        <i className="fas fa-gift fs-2"></i>
+                                    </div>
+                                    <div>
+                                        <h3 className="fw-bold m-0">Programa de Referidos Dui Tech</h3>
+                                        <p className="small opacity-75 m-0">Invita a tus amigos y gana beneficios increíbles</p>
+                                    </div>
+                                </div>
+                                <div className="row g-3 mb-4">
+                                    <div className="col-md-4">
+                                        <div className="bg-white/10 p-3 rounded-4 border border-white/20 text-center">
+                                            <div className="h2 fw-bold m-0">3</div>
+                                            <div className="small opacity-75">Amigos Referidos</div>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <div className="bg-white/10 p-3 rounded-4 border border-white/20 text-center">
+                                            <div className="h2 fw-bold m-0">$1,500</div>
+                                            <div className="small opacity-75">Crédito Ganado</div>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <div className="bg-white/10 p-3 rounded-4 border border-white/20 text-center">
+                                            <div className="h2 fw-bold m-0">$500</div>
+                                            <div className="small opacity-75">Por Cada Referido</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="d-flex gap-2 flex-wrap">
+                                    <button className="btn btn-light btn-lg rounded-pill px-4 fw-bold">
+                                        <i className="fas fa-share-alt me-2"></i>Compartir mi Código
+                                    </button>
+                                    <button className="btn btn-outline-light btn-lg rounded-pill px-4 fw-bold">
+                                        Ver Términos
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="col-md-4 text-center d-none d-md-block">
+                                <div className="bg-white p-4 rounded-4 shadow-lg">
+                                    <div className="fw-bold text-dark mb-2">Tu Código de Referido</div>
+                                    <div className="h1 fw-bold text-primary m-0 font-monospace">DUI2026</div>
+                                    <button className="btn btn-sm btn-primary rounded-pill mt-3 px-4">
+                                        <i className="fas fa-copy me-2"></i>Copiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <i className="fas fa-users absolute -bottom-10 -right-10 text-white opacity-10" style={{ fontSize: '200px' }}></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// Helper Components
+const ActivityItem = ({ time, text, icon }) => (
+    <div className="activity-item">
+        <div className="activity-time">{time}</div>
+        <div className="flex-1 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-[10px] text-primary">
+                 <i className={`fas ${icon || 'fa-circle'}`}></i>
+            </div>
+            <span className="activity-text">{text}</span>
+        </div>
+    </div>
+);
+
+export default Dashboard;
